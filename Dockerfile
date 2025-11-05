@@ -1,44 +1,42 @@
-# Build stage - Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
+# 使用 Python 3.11 作为基础镜像
+FROM python:3.11-slim-bookworm AS builder
 
-# Install the project into `/app`
+# 安装系统依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装 uv
+RUN pip install uv
+
+# 设置工作目录
 WORKDIR /app
 
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
+# 复制项目文件
+COPY . .
 
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
+# 同步依赖
+RUN uv sync --frozen --no-dev
 
-# Install git and build dependencies for ClickHouse client
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends git build-essential
+# 生产阶段
+FROM python:3.11-slim-bookworm
 
-# Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=README.md,target=README.md \
-    uv sync --locked --no-install-project --no-dev
+# 安装运行时依赖（如果需要）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# Then, add the rest of the project source code and install it
-# Installing separately from its dependencies allows optimal layer caching
-COPY . /app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-editable
-
-# Production stage - Use minimal Python image
-FROM python:3.13-slim-bookworm
-
-# Set the working directory
+# 设置工作目录
 WORKDIR /app
 
-# Copy the virtual environment from the builder stage
+# 从构建阶段复制虚拟环境
 COPY --from=builder /app/.venv /app/.venv
 
-# Place executables in the environment at the front of the path
+# 设置 PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Run the MCP ClickHouse server by default
+# 暴露端口
+EXPOSE 8000
+
+# 启动命令
 CMD ["python", "-m", "mcp_clickhouse.main"]
