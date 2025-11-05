@@ -1,6 +1,10 @@
 # Build stage - Use a Python image with uv pre-installed
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+
+
 # Install the project into `/app`
 WORKDIR /app
 

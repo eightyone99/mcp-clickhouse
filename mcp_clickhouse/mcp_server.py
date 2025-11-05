@@ -6,7 +6,6 @@ import atexit
 import os
 
 import clickhouse_connect
-import chdb.session as chs
 from clickhouse_connect.driver.binding import format_query_value
 from dotenv import load_dotenv
 from fastmcp import FastMCP
@@ -324,22 +323,6 @@ def chdb_initial_prompt() -> str:
     return CHDB_PROMPT
 
 
-def _init_chdb_client():
-    """Initialize the global chDB client instance."""
-    try:
-        if not get_chdb_config().enabled:
-            logger.info("chDB is disabled, skipping client initialization")
-            return None
-
-        client_config = get_chdb_config().get_client_config()
-        data_path = client_config["data_path"]
-        logger.info(f"Creating chDB client with data_path={data_path}")
-        client = chs.Session(path=data_path)
-        logger.info(f"Successfully connected to chDB with data_path={data_path}")
-        return client
-    except Exception as e:
-        logger.error(f"Failed to initialize chDB client: {e}")
-        return None
 
 
 # Register tools based on configuration
@@ -350,16 +333,3 @@ if os.getenv("CLICKHOUSE_ENABLED", "true").lower() == "true":
     logger.info("ClickHouse tools registered")
 
 
-if os.getenv("CHDB_ENABLED", "false").lower() == "true":
-    _chdb_client = _init_chdb_client()
-    if _chdb_client:
-        atexit.register(lambda: _chdb_client.close())
-
-    mcp.add_tool(Tool.from_function(run_chdb_select_query))
-    chdb_prompt = Prompt.from_function(
-        chdb_initial_prompt,
-        name="chdb_initial_prompt",
-        description="This prompt helps users understand how to interact and perform common operations in chDB",
-    )
-    mcp.add_prompt(chdb_prompt)
-    logger.info("chDB tools and prompts registered")
