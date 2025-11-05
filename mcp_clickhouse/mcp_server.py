@@ -258,65 +258,6 @@ def get_readonly_setting(client) -> str:
         return "1"  # Default to basic read-only mode if setting isn't present
 
 
-def create_chdb_client():
-    """Create a chDB client connection."""
-    if not get_chdb_config().enabled:
-        raise ValueError("chDB is not enabled. Set CHDB_ENABLED=true to enable it.")
-    return _chdb_client
-
-
-def execute_chdb_query(query: str):
-    """Execute a query using chDB client."""
-    client = create_chdb_client()
-    try:
-        res = client.query(query, "JSON")
-        if res.has_error():
-            error_msg = res.error_message()
-            logger.error(f"Error executing chDB query: {error_msg}")
-            return {"error": error_msg}
-
-        result_data = res.data()
-        if not result_data:
-            return []
-
-        result_json = json.loads(result_data)
-
-        return result_json.get("data", [])
-
-    except Exception as err:
-        logger.error(f"Error executing chDB query: {err}")
-        return {"error": str(err)}
-
-
-def run_chdb_select_query(query: str):
-    """Run SQL in chDB, an in-process ClickHouse engine"""
-    logger.info(f"Executing chDB SELECT query: {query}")
-    try:
-        future = QUERY_EXECUTOR.submit(execute_chdb_query, query)
-        try:
-            timeout_secs = get_mcp_config().query_timeout
-            result = future.result(timeout=timeout_secs)
-            # Check if we received an error structure from execute_chdb_query
-            if isinstance(result, dict) and "error" in result:
-                logger.warning(f"chDB query failed: {result['error']}")
-                return {
-                    "status": "error",
-                    "message": f"chDB query failed: {result['error']}",
-                }
-            return result
-        except concurrent.futures.TimeoutError:
-            logger.warning(
-                f"chDB query timed out after {timeout_secs} seconds: {query}"
-            )
-            future.cancel()
-            return {
-                "status": "error",
-                "message": f"chDB query timed out after {timeout_secs} seconds",
-            }
-    except Exception as e:
-        logger.error(f"Unexpected error in run_chdb_select_query: {e}")
-        return {"status": "error", "message": f"Unexpected error: {e}"}
-
 
 def chdb_initial_prompt() -> str:
     """This prompt helps users understand how to interact and perform common operations in chDB"""
