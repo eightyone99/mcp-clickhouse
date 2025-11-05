@@ -217,21 +217,6 @@ wheels = [
 ]
 
 [[package]]
-name = "chdb"
-version = "3.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pandas" },
-    { name = "pyarrow" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/85/bfbb2731366ed8954398ce60616dab3b7dda19a76e4921cd8bbaa88d347e/chdb-3.6.0-cp38-abi3-macosx_10_15_x86_64.whl", hash = "sha256:6ec2112ec5a7c5299ec3340825da94a8ee5acc02a7855b8bedb63583b951c7cd", size = 95734035, upload-time = "2025-09-08T19:58:39.954Z" },
-    { url = "https://files.pythonhosted.org/packages/b9/fd/9c5ba30ef3c136974579c4287e653169ab05574607356ea70cd383efe76f/chdb-3.6.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:f3ad8d93962c5720690e8bf1790fc619ff7292bf62697e932e37d33727c7015c", size = 87208265, upload-time = "2025-09-08T08:16:39.103Z" },
-    { url = "https://files.pythonhosted.org/packages/5b/78/4b998405c05d322721bd80955b22c9e90051c98e23b0f28708510048a3f2/chdb-3.6.0-cp38-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:52ebfedbe69222bb61cb862f8a2a76e4db647f58e01affb23a0f4b7b273acf77", size = 123188330, upload-time = "2025-09-08T08:21:30.297Z" },
-    { url = "https://files.pythonhosted.org/packages/79/e0/edc00786dca14f7ae48a762ce6757dc09c00a535e70e7518845fe7ac672b/chdb-3.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:0e45613df99ea35221693e353c47acb99b7d1ce0c2409e271c24c2ffc993159a", size = 181528606, upload-time = "2025-09-08T08:20:06.54Z" },
-]
-
-[[package]]
 name = "click"
 version = "8.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -792,7 +777,6 @@ name = "mcp-clickhouse"
 version = "0.1.12"
 source = { editable = "." }
 dependencies = [
-    { name = "chdb" },
     { name = "clickhouse-connect" },
     { name = "fastmcp" },
     { name = "python-dotenv" },
@@ -808,7 +792,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chdb", specifier = ">=3.3.0" },
     { name = "clickhouse-connect", specifier = ">=0.8.16" },
     { name = "fastmcp", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'" },
